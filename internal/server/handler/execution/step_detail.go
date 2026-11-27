@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	
+
 	"github.com/xmapst/taskflow/api"
 	"github.com/xmapst/taskflow/api/httpx"
 	"github.com/xmapst/taskflow/api/iproto"
@@ -37,7 +37,7 @@ func (h *Handler) GetStep(w http.ResponseWriter, r *http.Request) {
 		httpx.Send(w, r, api.WithCode[any](api.CodeNoData).WithError(err))
 		return
 	}
-	
+
 	httpx.Send(w, r, api.WithData(step).WithCode(code).WithMessage(step.Message))
 }
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	
+
 	"github.com/xmapst/taskflow/api"
 	"github.com/xmapst/taskflow/api/httpx"
 	"github.com/xmapst/taskflow/api/iproto"
@@ -94,7 +94,7 @@ func (h *Handler) listTasks(req *iproto.SPageReq) *iproto.STaskListDetailRes {
 			},
 		}
 		st := storage.Task(task.Name)
-		
+
 		// Report the steps that are currently running.
 		steps := st.StepStateList(storage.All)
 		res.Count = int64(len(steps))

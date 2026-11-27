@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	
+
 	"github.com/xmapst/taskflow/api"
 	"github.com/xmapst/taskflow/api/httpx"
 	"github.com/xmapst/taskflow/api/iproto"
@@ -64,7 +64,7 @@ func (h *Handler) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer root.Close()
-	
+
 	// 逐项删除并收集失败项：一项删不掉不应让其余选中项留在原地
 	var failures []string
 	for _, path := range paths {
@@ -146,7 +146,7 @@ func (h *Handler) GetWorkspace(w http.ResponseWriter, r *http.Request) {
 		httpx.Send(w, r, api.WithCode[any](api.CodeNoData).WithError(err))
 		return
 	}
-	
+
 	var infos = new(iproto.SFileListRes)
 	for _, entry := range entries {
 		info, err := entry.Info()

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	
+
 	"github.com/xmapst/taskflow/api"
 	"github.com/xmapst/taskflow/api/httpx"
 	"github.com/xmapst/taskflow/api/iproto"
@@ -32,7 +32,7 @@ func (h *Handler) GetTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set(iproto.XTaskState, task.State)
-	
+
 	httpx.Send(w, r, api.WithData(task).WithCode(code).WithMessage(task.Message))
 }
 
@@ -49,7 +49,7 @@ func (h *Handler) queryTask(taskName string) (api.Code, *iproto.STaskRes, error)
 		)
 		return api.CodeFailed, nil, errors.New("task not found")
 	}
-	
+
 	data := &iproto.STaskRes{
 		Name:    task.Name,
 		Workdir: task.Workdir,
@@ -69,7 +69,7 @@ func (h *Handler) queryTask(taskName string) (api.Code, *iproto.STaskRes, error)
 			Secret: env.Secret,
 		})
 	}
-	
+
 	// Report the steps that are currently running.
 	steps := db.StepStateList(storage.All)
 	data.Count = int64(len(steps))

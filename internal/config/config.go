@@ -45,6 +45,8 @@ func Init() error {
 	var dirs = map[string]string{
 		"root":      App.RootDir,
 		"log":       App.LogDir(),
+		"temp":      App.TempDir(),
+		"replay":    App.ReplayDir(),
 		"script":    App.ScriptDir(),
 		"workspace": App.WorkspaceDir(),
 	}

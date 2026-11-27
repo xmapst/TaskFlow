@@ -14,9 +14,9 @@ import (
 	"runtime"
 	"strings"
 	"time"
-	
+
 	"github.com/netresearch/go-cron"
-	
+
 	"github.com/xmapst/taskflow/pkg/osext"
 	"github.com/xmapst/taskflow/pkg/selfupdate"
 )
@@ -60,16 +60,16 @@ func (p *selfUpdate) doUpdate() {
 		slog.Debug("automatic updates are not turned on")
 		return
 	}
-	
+
 	if p.sHash == nil {
 		p.localSha256sum()
 	}
-	
+
 	checksum, name := p.remoteSha256sum(fmt.Sprintf("%s/latest.sha256sum", p.sURL))
 	if checksum == nil || p.sHash == nil || bytes.Equal(p.sHash, checksum) {
 		return
 	}
-	
+
 	opts := selfupdate.Options{
 		Checksum: checksum,
 	}
@@ -80,7 +80,7 @@ func (p *selfUpdate) doUpdate() {
 		)
 		return
 	}
-	
+
 	resp, err := updateHTTPClient.Get(fmt.Sprintf("%s/%s", p.sURL, name))
 	if err != nil {
 		slog.Warn(
@@ -102,7 +102,7 @@ func (p *selfUpdate) doUpdate() {
 			)
 		}
 	}(resp.Body)
-	
+
 	if resp.StatusCode != http.StatusOK {
 		slog.Warn(
 			"binary download failed",
@@ -110,7 +110,7 @@ func (p *selfUpdate) doUpdate() {
 		)
 		return
 	}
-	
+
 	err = selfupdate.PrepareAndCheckBinary(resp.Body, opts)
 	if err != nil {
 		slog.Warn(
@@ -119,11 +119,11 @@ func (p *selfUpdate) doUpdate() {
 		)
 		return
 	}
-	
+
 	if p.skipFunc() {
 		return
 	}
-	
+
 	err = selfupdate.CommitBinary(opts)
 	if err != nil {
 		slog.Error(
@@ -132,7 +132,7 @@ func (p *selfUpdate) doUpdate() {
 		)
 		return
 	}
-	
+
 	// Exit so the service supervisor can start the new executable.
 	os.Exit(200)
 }

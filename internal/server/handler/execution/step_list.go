@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	
+
 	"github.com/xmapst/taskflow/api"
 	"github.com/xmapst/taskflow/api/httpx"
 	"github.com/xmapst/taskflow/api/iproto"
@@ -41,12 +41,12 @@ func (h *Handler) querySteps(taskName string) (code api.Code, data iproto.SSteps
 		)
 		return api.CodeNoData, nil, err
 	}
-	
+
 	steps := db.StepList(storage.All)
 	if steps == nil {
 		return api.CodeNoData, nil, errors.New("steps not found")
 	}
-	
+
 	// 用于分组和构建任务数据
 	var groups = make(map[models.State][]string)
 	stepList := make(iproto.SStepsRes, 0, len(steps))
@@ -68,12 +68,12 @@ func (h *Handler) querySteps(taskName string) (code api.Code, data iproto.SSteps
 		}
 		stepList = append(stepList, res)
 	}
-	
+
 	data = h.orderStepsByDependency(stepList)
-	
+
 	// 生成任务的状态消息
 	task.Message = h.generateStateMessage(task.Message, groups)
-	
+
 	return h.convertState(task.State.OrUnknown()), data, errors.New(task.Message)
 }
 
@@ -85,14 +85,14 @@ func (h *Handler) orderStepsByDependency(steps iproto.SStepsRes) iproto.SStepsRe
 	}
 	visited := make(map[string]bool, len(steps))
 	sorted := make(iproto.SStepsRes, 0, len(steps))
-	
+
 	var visit func(name string)
 	visit = func(name string) {
 		if visited[name] {
 			return
 		}
 		visited[name] = true
-		
+
 		if step, exists := byName[name]; exists {
 			for _, edge := range iproto.DAGDependencies(step.Routing).Edges {
 				visit(edge.Task)
@@ -100,10 +100,10 @@ func (h *Handler) orderStepsByDependency(steps iproto.SStepsRes) iproto.SStepsRe
 			sorted = append(sorted, step)
 		}
 	}
-	
+
 	for _, step := range steps {
 		visit(step.Name)
 	}
-	
+
 	return sorted
 }
