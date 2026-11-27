@@ -1,6 +1,7 @@
 package config
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -17,11 +18,15 @@ import (
 	"github.com/xmapst/taskflow/api"
 	"github.com/xmapst/taskflow/internal/storage"
 	"github.com/xmapst/taskflow/internal/storage/models"
+	"github.com/xmapst/taskflow/pkg/lockfile"
 	"github.com/xmapst/taskflow/pkg/utility"
 	"github.com/xmapst/taskflow/pkg/xsqlite"
 )
 
-var db *gorm.DB
+var (
+	dbPool *sql.DB
+	dbLock lockfile.Lockfile
+)
 
 func Init() error {
 	var level slog.Level
@@ -87,11 +92,32 @@ func Init() error {
 }
 
 func (c AppConfig) initStorage() (err error) {
-	dir := App.DataDir()
+	dir, err := filepath.Abs(c.DataDir())
+	if err != nil {
+		return fmt.Errorf("resolve database directory: %w", err)
+	}
 	if err = utility.EnsureDirExist(dir); err != nil {
 		return fmt.Errorf("failed to ensure directory %s: %v", dir, err)
 	}
 	file := filepath.Join(dir, fmt.Sprintf("%s.db3", api.ServiceName))
+	lockPath := file + ".lock"
+	lock, err := lockfile.New(lockPath)
+	if err != nil {
+		return fmt.Errorf("initialize database lock at %q: %w", lockPath, err)
+	}
+	err = lock.TryLock()
+	if errors.Is(err, lockfile.ErrBusy) {
+		return fmt.Errorf("database %q is already in use by another TaskFlow instance: %w", file, err)
+	}
+	if err != nil {
+		return fmt.Errorf("lock database at %q: %w", lockPath, err)
+	}
+	defer func() {
+		if err != nil {
+			err = errors.Join(err, lock.Unlock())
+		}
+	}()
+
 	slog.Info(
 		"database configured",
 		slog.String("path", file),
@@ -113,7 +139,7 @@ func (c AppConfig) initStorage() (err error) {
 		FullSaveAssociations:   true,
 		TranslateError:         true,
 	}
-	db, err = gorm.Open(dialector, gromConf)
+	db, err := gorm.Open(dialector, gromConf)
 	if err != nil {
 		slog.Error(
 			"operation failed",
@@ -135,8 +161,7 @@ func (c AppConfig) initStorage() (err error) {
 	sqlDB.SetMaxOpenConns(1)
 	defer func() {
 		if err != nil {
-			_ = sqlDB.Close()
-			db = nil
+			err = errors.Join(err, sqlDB.Close())
 		}
 	}()
 
@@ -153,21 +178,20 @@ func (c AppConfig) initStorage() (err error) {
 		)
 		return err
 	}
-	return storage.FixDatabase()
+	if err = storage.FixDatabase(); err != nil {
+		return err
+	}
+	dbPool, dbLock = sqlDB, lock
+	return nil
 }
 
 func CloseDB() error {
-	if db == nil {
+	if dbPool == nil {
 		return nil
 	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		slog.Error(
-			"operation failed",
-			slog.Any("error", err),
-		)
-		return err
-	}
-	closeErr := sqlDB.Close()
-	return errors.Join(closeErr)
+	// Close SQLite before allowing another process to open it.
+	closeErr := dbPool.Close()
+	unlockErr := dbLock.Unlock()
+	dbPool, dbLock = nil, ""
+	return errors.Join(closeErr, unlockErr)
 }

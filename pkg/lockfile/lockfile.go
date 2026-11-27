@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 // Lockfile is a pid file which can be locked
@@ -33,51 +34,53 @@ var (
 	ErrBusy          = TemporaryError("Locked by other process")             // If you get this, retry after a short sleep might help
 	ErrNotExist      = TemporaryError("Lockfile created, but doesn't exist") // If you get this, retry after a short sleep might help
 	ErrNeedAbsPath   = errors.New("lockfiles must be given as absolute path names")
-	ErrInvalidPid    = errors.New("Lockfile contains invalid pid for system")
-	ErrDeadOwner     = errors.New("Lockfile contains pid of process not existent on this system anymore")
-	ErrRogueDeletion = errors.New("Lockfile owned by me has been removed unexpectedly")
+	ErrInvalidPid    = errors.New("lockfile contains invalid pid for system")
+	ErrDeadOwner     = errors.New("lockfile contains pid of process not existent on this system anymore")
+	ErrRogueDeletion = errors.New("lockfile owned by me has been removed unexpectedly")
 )
 
 // New describes a new filename located at the given absolute path.
+// The package reserves a sibling file with the suffix ".guard" for coordinating
+// changes to the PID file. Do not remove or replace that guard file.
 func New(path string) (Lockfile, error) {
 	if !filepath.IsAbs(path) {
 		return "", ErrNeedAbsPath
 	}
 	_ = os.MkdirAll(filepath.Dir(path), os.ModeDir)
-	
+
 	return Lockfile(path), nil
 }
 
 // GetOwner returns who owns the lockfile.
 func (l Lockfile) GetOwner() (*os.Process, error) {
 	name := string(l)
-	
+
 	// Ok, see, if we have a stale lockfile here
 	content, err := os.ReadFile(name)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// try hard for pids. If no pid, the lockfile is junk anyway and we delete it.
 	pid, err := l.scanPidLine(content)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	running, err := l.isRunning(pid)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if running {
 		proc, err := os.FindProcess(pid)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		return proc, nil
 	}
-	
+
 	return nil, ErrDeadOwner
 }
 
@@ -86,22 +89,44 @@ func (l Lockfile) GetOwner() (*os.Process, error) {
 // Please note, that existing lockfiles containing pids of dead processes
 // and lockfiles containing no pid at all are simply deleted.
 func (l Lockfile) TryLock() error {
-	name := string(l)
-	
-	// This has been checked by New already. If we trigger here,
-	// the caller didn't use New and re-implemented it's functionality badly.
-	// So panic, that he might find this easily during testing.
-	if !filepath.IsAbs(name) {
+	if !filepath.IsAbs(string(l)) {
 		panic(ErrNeedAbsPath)
 	}
-	
+	return l.withGuard(l.tryLock)
+}
+
+// POSIX record locks are per-process. Keep goroutines from independently
+// opening or closing the same guard while one goroutine holds its lock.
+var guardMu sync.Mutex
+
+func (l Lockfile) withGuard(fn func() error) error {
+	guardMu.Lock()
+	defer guardMu.Unlock()
+
+	// Never unlink the guard: waiters may already have it open. The kernel
+	// releases the lock when the descriptor closes or the process dies.
+	path := string(l) + ".guard"
+	guard, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
+	if err != nil {
+		return err
+	}
+	defer guard.Close()
+	if err := lockGuard(guard); err != nil {
+		return fmt.Errorf("lock PID file guard %q: %w", path, err)
+	}
+	return fn()
+}
+
+func (l Lockfile) tryLock() error {
+	name := string(l)
+
 	tmplock, cleanup, err := l.makePidFile(name, os.Getpid())
 	if err != nil {
 		return err
 	}
-	
+
 	defer cleanup()
-	
+
 	// EEXIST and similar error codes, caught by os.IsExist, are intentionally ignored,
 	// as it means that someone was faster creating this link
 	// and ignoring this kind of error is part of the algorithm.
@@ -114,28 +139,31 @@ func (l Lockfile) TryLock() error {
 			return err
 		}
 	}
-	
+
 	fiTmp, err := os.Lstat(tmplock)
 	if err != nil {
 		return err
 	}
-	
+
 	fiLock, err := os.Lstat(name)
 	if err != nil {
 		// tell user that a retry would be a good idea
 		if os.IsNotExist(err) {
 			return ErrNotExist
 		}
-		
+
 		return err
 	}
-	
+
 	// Success
 	if os.SameFile(fiTmp, fiLock) {
 		return nil
 	}
-	
-	_, err = l.GetOwner()
+
+	owner, err := l.GetOwner()
+	if owner != nil {
+		_ = owner.Release()
+	}
 	switch {
 	default:
 		if os.IsNotExist(err) {
@@ -153,7 +181,7 @@ func (l Lockfile) TryLock() error {
 	case errors.Is(err, ErrDeadOwner), errors.Is(err, ErrInvalidPid):
 		// cases we can fix below
 	}
-	
+
 	// clean stale/invalid lockfile
 	err = os.Remove(name)
 	if err != nil {
@@ -162,14 +190,22 @@ func (l Lockfile) TryLock() error {
 			return err
 		}
 	}
-	
-	// now that the stale lockfile is gone, let's recurse
-	return l.TryLock()
+
+	// Retry without reacquiring the guard; no other participant can replace
+	// the stale PID file between the owner check, removal and retry.
+	return l.tryLock()
 }
 
 // Unlock a lock again, if we owned it. Returns any error that happened during release of lock.
 func (l Lockfile) Unlock() error {
+	return l.withGuard(l.unlock)
+}
+
+func (l Lockfile) unlock() error {
 	proc, err := l.GetOwner()
+	if proc != nil {
+		defer proc.Release()
+	}
 	switch {
 	case errors.Is(err, ErrInvalidPid), errors.Is(err, ErrDeadOwner):
 		return ErrRogueDeletion
@@ -195,16 +231,16 @@ func (l Lockfile) scanPidLine(content []byte) (int, error) {
 	if len(content) == 0 {
 		return 0, ErrInvalidPid
 	}
-	
+
 	var pid int
 	if _, err := fmt.Sscanln(string(content), &pid); err != nil {
 		return 0, ErrInvalidPid
 	}
-	
+
 	if pid <= 0 {
 		return 0, ErrInvalidPid
 	}
-	
+
 	return pid, nil
 }
 
@@ -213,16 +249,16 @@ func (l Lockfile) makePidFile(name string, pid int) (tmpname string, cleanup fun
 	if err != nil {
 		return "", nil, err
 	}
-	
+
 	cleanup = func() {
 		_ = tmplock.Close()
 		_ = os.Remove(tmplock.Name())
 	}
-	
+
 	if _, err = io.WriteString(tmplock, fmt.Sprintf("%d\n", pid)); err != nil {
 		cleanup() // Do cleanup here, so call doesn't have to.
 		return "", nil, err
 	}
-	
+
 	return tmplock.Name(), cleanup, nil
 }

@@ -48,6 +48,8 @@ TaskFlow 是一个跨平台任务编排与执行服务，通过 API 定义和运
 运行 taskflow_linux_amd64_v1 [命令] --help 查看指定命令的详细用法。
 ```
 
+同一个数据目录只允许一个 TaskFlow 进程打开 SQLite 数据库。若启动时提示数据库已被占用，请先停止正在使用该目录的实例。TaskFlow 正常退出时会移除 `data/taskflow.db3.lock`；请勿在进程运行时手动删除该文件。用于协调锁清理的 `data/taskflow.db3.lock.guard` 会保留在磁盘上，无需删除。
+
 ## 安装为系统服务
 
 ### Windows

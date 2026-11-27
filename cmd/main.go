@@ -35,18 +35,13 @@ func main() {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Version:       utility.Version,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := config.Init(); err != nil {
-				slog.Error(
-					"operation failed",
-					slog.Any("error", err),
-				)
 				return err
 			}
+			// Also clean up if the service manager fails before Start or Stop.
+			defer closeDatabase()
 
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
 			name, err := filepath.Abs(os.Args[0])
 			if err != nil {
 				slog.Error(
@@ -122,12 +117,6 @@ func (a *standaloneService) Start(s service.Service) (err error) {
 			if a.rpcDone != nil {
 				<-a.rpcDone
 			}
-			if closeErr := config.CloseDB(); closeErr != nil {
-				slog.Warn(
-					"close database after startup failure",
-					slog.Any("error", closeErr),
-				)
-			}
 		}
 	}()
 
@@ -150,11 +139,12 @@ func (a *standaloneService) Stop(s service.Service) error {
 	if a.rpcDone != nil {
 		<-a.rpcDone
 	}
-	if err := config.CloseDB(); err != nil {
-		slog.Warn(
-			"operation warning",
-			slog.Any("error", err),
-		)
-	}
+	closeDatabase()
 	return xslog.Close()
+}
+
+func closeDatabase() {
+	if err := config.CloseDB(); err != nil {
+		slog.Warn("close database failed", slog.Any("error", err))
+	}
 }
