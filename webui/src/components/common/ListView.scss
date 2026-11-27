@@ -1,0 +1,100 @@
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3) var(--sp-4);
+  flex-wrap: wrap;
+
+  &__left, &__right {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  &__right { margin-inline-start: auto; }
+}
+
+.list-view-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
+  gap: var(--sp-3);
+  align-content: start;
+}
+
+.list-card {
+  --list-card-accent: var(--c-border-strong);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  min-width: 0;
+  background: var(--c-bg-surface);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--r-lg);
+  position: relative;
+  animation: slide-in-up var(--dur-base) var(--ease-out);
+  transition: border-color var(--dur-base), box-shadow var(--dur-base), transform var(--dur-fast);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 1px auto;
+    height: 2px;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    background: var(--list-card-accent);
+  }
+
+  @each $tone in running, pending, paused, failed, stopped, skipped, unknown {
+    &[data-tone='#{$tone}'] { --list-card-accent: var(--c-state-#{$tone}); }
+  }
+
+  &:hover { border-color: var(--c-border-strong); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  &:focus-within { border-color: var(--c-accent); }
+
+  &__head, &__footer {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+
+  &__title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--c-text-primary);
+  }
+
+  &__open {
+    max-width: 100%;
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    &:hover { color: var(--c-accent); }
+  }
+
+  &__actions { flex: none; }
+
+  &__footer {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--c-border-subtle);
+    margin-top: auto;
+  }
+}
+
+.list-pagination { display: flex; justify-content: flex-end; flex-wrap: wrap; }

@@ -1,0 +1,50 @@
+.system-info {
+  .arco-modal-content {
+    max-height: calc(100dvh - 130px);
+    overflow: auto;
+  }
+
+  &__body {
+    display: grid;
+    gap: var(--sp-3);
+
+    section { min-width: 0; }
+    h2 { font-size: var(--text-md); margin: 0 0 var(--sp-2); }
+    p { margin: var(--sp-2) 0; }
+  }
+
+  &__pool {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+
+  &__metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--sp-2);
+    margin: 0;
+
+    div {
+      border: 1px solid var(--color-border-2);
+      border-radius: 6px;
+      padding: var(--sp-2) var(--sp-3);
+    }
+    dt { color: var(--c-text-secondary); }
+    dd { margin: 0; font-weight: 600; }
+  }
+
+  &__disks {
+    overflow: auto;
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td {
+      padding: var(--sp-2);
+      border-bottom: 1px solid var(--color-border-2);
+      text-align: start;
+      white-space: nowrap;
+    }
+    th { background: var(--c-bg-surface); }
+  }
+}

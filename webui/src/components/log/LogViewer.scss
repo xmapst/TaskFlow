@@ -1,0 +1,138 @@
+.log-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--c-log-bg);
+  overflow: hidden;
+
+  // ---------- 工具条 ----------
+  &__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: 1px solid var(--c-border-subtle);
+    background: var(--c-bg-inset);
+    flex-shrink: 0;
+  }
+
+  &__search {
+    max-width: 240px;
+  }
+
+  &__bar-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+
+  &__count {
+    font-size: 11px;
+    color: var(--c-text-tertiary);
+  }
+
+  &__warn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: var(--r-xs);
+    background: var(--c-state-pending-soft);
+    color: var(--c-state-pending);
+  }
+
+  // ---------- 日志区 ----------
+  &__body {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+  }
+
+  &__scroll {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: auto;
+    // 独立滚动上下文，防止滚动穿透到外层抽屉
+    overscroll-behavior: contain;
+  }
+
+  // 虚拟列表的高度撑起容器，行通过 transform 定位
+  &__spacer {
+    position: relative;
+    width: 100%;
+  }
+
+  &__row {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: 0 var(--sp-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 20px;
+    white-space: pre;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+  }
+
+  &__lineno {
+    flex-shrink: 0;
+    width: 52px;
+    text-align: right;
+    color: var(--c-log-gutter);
+    user-select: none;
+  }
+
+  &__time {
+    flex-shrink: 0;
+    color: var(--c-text-tertiary);
+    user-select: none;
+  }
+
+  &__text {
+    color: var(--c-log-text);
+    // 保留原始空白，日志缩进有语义
+    white-space: pre;
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--c-text-tertiary);
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+  }
+
+  // 脱离底部时的回到最新按钮
+  &__jump {
+    position: absolute;
+    right: var(--sp-4);
+    bottom: var(--sp-4);
+    padding: 6px 12px;
+    border: 1px solid var(--c-accent);
+    border-radius: var(--r-full);
+    background: var(--c-bg-raised);
+    color: var(--c-accent);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    animation: slide-in-up var(--dur-base) var(--ease-out);
+    transition: all var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      background: var(--c-accent-soft);
+      box-shadow: var(--ring-accent);
+    }
+  }
+}

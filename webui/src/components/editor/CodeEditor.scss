@@ -1,0 +1,82 @@
+.code-editor {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  border: 1px solid var(--c-border-base);
+  background: var(--c-code-bg);
+
+  .cm-editor {
+    height: 100%;
+    font-size: var(--text-sm);
+    background: var(--c-code-bg);
+    color: var(--c-code-text);
+
+    &.cm-focused {
+      outline: none;
+    }
+  }
+
+  .cm-scroller {
+    font-family: var(--font-mono);
+    line-height: var(--leading-relaxed);
+  }
+
+  .cm-gutters {
+    background: var(--c-code-bg);
+    border-right: 1px solid var(--c-border-subtle);
+    color: var(--c-text-secondary);
+  }
+
+  .cm-content {
+    caret-color: var(--c-accent);
+  }
+
+  .cm-cursor,
+  .cm-dropCursor {
+    border-left-width: 2px;
+    border-left-color: var(--c-accent);
+  }
+
+  .cm-activeLine,
+  .cm-activeLineGutter {
+    background: var(--c-border-subtle);
+  }
+
+  .cm-selectionBackground,
+  &.cm-focused .cm-selectionBackground {
+    background: var(--c-accent-soft) !important;
+  }
+
+  .cm-matchingBracket {
+    outline: 1px solid var(--c-accent);
+    background: var(--c-accent-soft);
+  }
+
+  // 搜索面板需与项目配色一致，Arco 与 CodeMirror 的默认样式差异明显
+  .cm-panels {
+    background: var(--c-bg-raised);
+    color: var(--c-text-primary);
+    border-color: var(--c-border-base);
+  }
+
+  .cm-panel input,
+  .cm-panel button {
+    background: var(--c-bg-inset);
+    color: var(--c-text-primary);
+    border: 1px solid var(--c-border-base);
+    border-radius: var(--r-xs);
+    font-family: var(--font-sans);
+  }
+
+  .cm-tooltip {
+    background: var(--c-bg-raised);
+    border: 1px solid var(--c-border-base);
+    color: var(--c-text-primary);
+  }
+
+  .cm-tooltip-autocomplete ul li[aria-selected] {
+    background: var(--c-accent-soft);
+    color: var(--c-accent);
+  }
+}

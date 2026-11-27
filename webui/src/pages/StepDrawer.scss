@@ -1,0 +1,271 @@
+.step-drawer {
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--c-text-primary);
+    min-width: 0;
+    max-width: 44vw;
+  }
+
+  .arco-drawer-content { padding: 0; }
+
+  &__info {
+    height: 100%;
+    padding: var(--sp-4);
+    overflow-y: auto;
+
+    dt { color: var(--c-text-secondary); font-size: var(--text-xs); }
+    dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-3);
+  }
+
+  &__metrics,
+  &__times,
+  &__rules {
+    display: grid;
+    gap: var(--sp-2);
+    margin: 0;
+  }
+
+  &__metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    > div {
+      display: grid;
+      gap: var(--sp-1);
+      align-content: start;
+      padding: var(--sp-2);
+      border-radius: var(--r-sm);
+      background: var(--c-bg-inset);
+    }
+
+    dd { font-size: var(--text-sm); font-weight: 600; }
+  }
+
+  &__times {
+    margin-top: var(--sp-3);
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--c-border-subtle);
+
+    > div {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      align-items: baseline;
+      gap: var(--sp-3);
+    }
+
+    dd { font-size: var(--text-xs); }
+  }
+
+  &__note {
+    margin-top: var(--sp-3);
+    font-size: var(--text-xs);
+
+    strong { color: var(--c-text-secondary); }
+    p { margin: var(--sp-1) 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  }
+
+  &__policy {
+    margin-top: var(--sp-3);
+    padding: var(--sp-2);
+    background: var(--c-bg-inset);
+    border-radius: var(--r-sm);
+    font-size: var(--text-xs);
+
+  }
+
+  &__policy-title {
+    margin: 0;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--c-text-primary);
+  }
+
+  &__rules { padding-top: var(--sp-2); }
+
+  &__policy-subtitle {
+    margin: var(--sp-2) 0 0;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--c-text-secondary);
+  }
+
+  &__options {
+    margin: var(--sp-1) 0 0;
+    padding: var(--sp-2);
+    max-height: 220px;
+    overflow: auto;
+    background: var(--c-code-bg);
+    border: 1px solid var(--c-border-base);
+    border-radius: var(--r-xs);
+    font-size: var(--text-xs);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  // 每个标签单独加框
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-1) var(--sp-2);
+    margin-top: var(--sp-1);
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    max-width: 100%;
+    padding: 1px var(--sp-2);
+    border: 1px solid var(--c-border-base);
+    border-radius: var(--r-xs);
+    background: var(--c-bg-surface);
+    color: var(--c-text-primary);
+    font-size: var(--text-xs);
+    line-height: 20px;
+    overflow-wrap: anywhere;
+
+    // 依赖项里的触发标签，用强调色区分步骤名
+    em {
+      padding-left: var(--sp-1);
+      border-left: 1px solid var(--c-border-base);
+      font-style: normal;
+      color: var(--c-accent);
+    }
+  }
+
+  &__tabs {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .arco-tabs-header-nav { padding: 0 var(--sp-4); }
+    .arco-tabs-header-extra { padding-right: var(--sp-4); }
+
+    .arco-tabs-content {
+      flex: 1;
+      min-height: 0;
+      padding: 0;
+    }
+
+    .arco-tabs-content-inner { height: 100%; }
+
+    .arco-tabs-content-item,
+    .arco-tabs-pane {
+      height: 100%;
+      min-height: 0;
+    }
+  }
+
+  &__tab-extra {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+  }
+
+  &__script {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    height: 100%;
+    padding: var(--sp-3) var(--sp-4);
+    min-height: 0;
+  }
+
+  &__interpreter {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--text-xs);
+    color: var(--c-text-secondary);
+
+    .u-mono { color: var(--c-text-primary); }
+  }
+
+  // 编辑器绝对定位铺满剩余高度，不依赖父级的百分比高度链
+  &__script-editor {
+    position: relative;
+    flex: 1;
+    min-height: 160px;
+  }
+
+  &__script-editor .code-editor {
+    position: absolute;
+    inset: 0;
+    height: auto;
+  }
+
+  &__options-pane {
+    height: 100%;
+    padding: var(--sp-4);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+
+  &__env {
+    height: 100%;
+    padding: var(--sp-4);
+    overflow-y: auto;
+  }
+
+  &__empty {
+    padding: var(--sp-4);
+    font-size: var(--text-xs);
+    color: var(--c-text-tertiary);
+  }
+
+  // ---------- 退出码 ----------
+  &__code {
+    font-weight: 700;
+
+    &--success {
+      color: var(--c-success);
+    }
+
+    &--danger {
+      color: var(--c-danger);
+    }
+
+    &--muted {
+      color: var(--c-text-tertiary);
+    }
+  }
+
+  &__log {
+    height: 100%;
+    min-height: 0;
+  }
+
+  &__hint {
+    font-size: 11px;
+    color: var(--c-text-tertiary);
+    max-width: 340px;
+  }
+}
+
+@media (max-width: 700px) {
+  .step-drawer__info,
+  .step-drawer__env { padding: var(--sp-3); }
+
+  .step-drawer__tabs .arco-tabs-header-nav { padding: 0 var(--sp-3); }
+  .step-drawer__hint { display: none; }
+}
+
+@media (max-width: 360px) {
+  .step-drawer__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

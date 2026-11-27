@@ -1,0 +1,144 @@
+.step-flow {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  position: relative;
+  background: var(--c-graph-bg);
+
+  // xyflow 的默认变量需要对齐项目令牌，否则深色下画布是白底
+  .react-flow {
+    background: var(--c-graph-bg);
+    --xy-background-color: var(--c-graph-bg);
+    --xy-node-border-radius: var(--r-md);
+  }
+
+  .react-flow__attribution {
+    display: none;
+  }
+
+  // 选中态由节点自身样式表达，去掉 xyflow 的默认描边
+  .react-flow__node.selected {
+    outline: none;
+  }
+
+  &__bg {
+    // 背景点阵颜色由 CSS 变量控制，随主题切换
+    --xy-background-pattern-color: var(--c-graph-dot);
+  }
+
+  // ---------- 连线 ----------
+  // 描边一律交给 CSS：连线对象上不写内联 style，主题切换才能即时生效。
+  // 颜色只看「目标步骤」的状态，且只有执行中与失败两种状态上色 ——
+  // 状态已由节点卡片逐条表达，边再逐条上色，整张图就只剩颜色没有结构。
+  .flow-edge {
+    .react-flow__edge-path {
+      stroke: var(--c-graph-edge);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+    }
+
+    &--normal {
+      .react-flow__edge-path {
+        opacity: 0.85;
+      }
+    }
+
+    &--muted {
+      .react-flow__edge-path {
+        opacity: 0.45;
+      }
+    }
+
+    &--faint {
+      .react-flow__edge-path {
+        opacity: 0.28;
+      }
+    }
+
+    &--failed {
+      .react-flow__edge-path {
+        stroke: var(--c-state-failed);
+        stroke-width: 1.8;
+      }
+    }
+
+    &--active {
+      .react-flow__edge-path {
+        stroke: var(--c-state-running);
+        stroke-width: 2;
+        // 6 + 3 = 9 为一个周期，位移两个周期，动画首尾相接不跳帧
+        stroke-dasharray: 6 3;
+        animation: flow-dash 0.9s linear infinite;
+      }
+    }
+  }
+
+  // 触发条件标签：默认样式是白底黑字，深色主题下非常突兀
+  .react-flow__edge-textbg {
+    fill: var(--c-bg-raised);
+  }
+
+  .react-flow__edge-text {
+    fill: var(--c-text-tertiary);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  // ---------- 控制条 ----------
+  &__controls {
+    border: 1px solid var(--c-border-base);
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+
+    button {
+      width: 28px;
+      height: 28px;
+      background: var(--c-bg-raised);
+      border-bottom: 1px solid var(--c-border-subtle);
+      color: var(--c-text-secondary);
+      fill: currentcolor;
+      transition: all var(--dur-fast) var(--ease-out);
+
+      &:hover {
+        background: var(--c-accent-soft);
+        color: var(--c-accent);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      path {
+        fill: currentcolor;
+      }
+    }
+  }
+
+  // ---------- 缩略图 ----------
+  // 只作为"我在哪"的定位器，不承载状态色，避免与节点的语义色打架
+  &__minimap {
+    border: 1px solid var(--c-border-base);
+    border-radius: var(--r-sm);
+    background: var(--c-bg-inset);
+    overflow: hidden;
+
+    .react-flow__minimap-mask {
+      fill: var(--c-graph-bg);
+      stroke: none;
+    }
+
+    .react-flow__minimap-node {
+      fill: var(--c-graph-edge);
+      stroke: none;
+    }
+  }
+}
+
+// 连线流动：位移必须正好等于两个 dash 周期，否则循环处会顿一下
+@keyframes flow-dash {
+  to {
+    stroke-dashoffset: -18;
+  }
+}

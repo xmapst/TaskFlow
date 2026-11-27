@@ -1,0 +1,295 @@
+.task-detail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+
+  // ---------- 顶部操作条 ----------
+  &__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-4);
+    padding: var(--sp-3) var(--sp-5);
+    background: var(--c-bg-base);
+    border-bottom: 1px solid var(--c-border-subtle);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  &__bar-left,
+  &__bar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+
+  &__divider {
+    width: 1px;
+    height: 16px;
+    background: var(--c-border-base);
+    margin: 0 var(--sp-1);
+  }
+
+  &__name {
+    font-size: var(--text-md);
+    font-weight: 600;
+    color: var(--c-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 42vw;
+  }
+
+  // ---------- 主体：三个平级 Tab ----------
+  &__body {
+    flex: 1;
+    min-height: 0;
+    padding: var(--sp-5);
+    overflow: hidden;
+  }
+
+  // 「详情」Tab：概览区（进度+统计磁贴）置顶，下方任务信息/环境变量/步骤清单三列平铺，
+  // 各列等宽、各自内部滚动（Panel 的 grow 撑满行高度）
+  &__overview-tab {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    height: 100%;
+    padding: var(--sp-4);
+    overflow-y: auto;
+  }
+
+  &__overview {
+    flex-shrink: 0;
+  }
+
+  &__overview-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+
+    .arco-progress {
+      flex: 1;
+    }
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--sp-3);
+    margin-top: var(--sp-3);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    // 行高必须是确定值（不能只有 min-height）：否则隐式行按内容自然高度
+    // 撑开，各列 Panel 拿不到确定高度就无法产生内部滚动
+    grid-template-rows: minmax(420px, 1fr);
+    gap: var(--sp-3);
+    flex: 1;
+    min-height: 0;
+
+    // 无环境变量时只有两列，仍保持等宽
+    &--no-env {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__grid-col {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  // ---------- 进度 ----------
+  &__progress-text {
+    font-size: var(--text-md);
+    font-weight: 700;
+    color: var(--c-accent);
+    flex-shrink: 0;
+  }
+
+  &__msg {
+    margin-top: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--c-bg-inset);
+    border-left: 2px solid var(--c-accent);
+    border-radius: 0 var(--r-sm) var(--r-sm) 0;
+    font-size: var(--text-xs);
+    color: var(--c-text-secondary);
+    line-height: var(--leading-normal);
+    overflow-wrap: anywhere;
+  }
+
+  &__count {
+    font-size: var(--text-xs);
+    color: var(--c-text-tertiary);
+  }
+
+  &__hint {
+    font-size: 11px;
+    color: var(--c-text-tertiary);
+  }
+
+}
+
+// 复用 Panel 的视觉样式，标题栏由 Tabs 提供。
+.task-detail__tabs {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--c-bg-surface);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+
+  .arco-tabs-header-wrapper {
+    padding: 0 var(--sp-4);
+    background: var(--c-bg-inset);
+    border-bottom: 1px solid var(--c-border-subtle);
+    flex-shrink: 0;
+  }
+
+  .arco-tabs-content {
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .arco-tabs-content-item,
+  .arco-tabs-pane {
+    height: 100%;
+  }
+}
+
+// ============================================================
+// 步骤清单
+// ============================================================
+.step-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    width: 100%;
+    padding: var(--sp-2) var(--sp-4);
+    border: none;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    color: var(--c-text-primary);
+    border-left: 2px solid transparent;
+    transition: all var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      background: var(--c-bg-inset);
+    }
+
+    &.is-active {
+      background: var(--c-accent-soft);
+      border-left-color: var(--c-accent);
+      color: var(--c-accent);
+      font-weight: 600;
+    }
+  }
+
+  &__name {
+    flex: 1;
+    font-size: var(--text-xs);
+    min-width: 0;
+  }
+
+  &__code {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: var(--r-xs);
+    background: var(--c-state-failed-soft);
+    color: var(--c-state-failed);
+    flex-shrink: 0;
+  }
+}
+
+// ============================================================
+// 节点右键菜单
+// ============================================================
+.step-context {
+  position: fixed;
+  z-index: var(--z-popover);
+  min-width: 176px;
+  padding: var(--sp-1);
+  background: var(--c-bg-raised);
+  border: 1px solid var(--c-border-base);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-xl);
+  animation: slide-in-up var(--dur-fast) var(--ease-out);
+
+  &__head {
+    padding: var(--sp-2) var(--sp-3);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--c-text-tertiary);
+    border-bottom: 1px solid var(--c-border-subtle);
+    margin-bottom: var(--sp-1);
+  }
+
+  &__item {
+    display: block;
+    width: 100%;
+    padding: var(--sp-2) var(--sp-3);
+    border: none;
+    border-radius: var(--r-xs);
+    background: transparent;
+    font: inherit;
+    font-size: var(--text-xs);
+    text-align: left;
+    color: var(--c-text-primary);
+    cursor: pointer;
+    transition: all var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      background: var(--c-accent-soft);
+      color: var(--c-accent);
+    }
+
+    &--danger:hover {
+      background: var(--c-state-failed-soft);
+      color: var(--c-danger);
+    }
+  }
+
+  &__empty {
+    padding: var(--sp-2) var(--sp-3);
+    font-size: 11px;
+    color: var(--c-text-tertiary);
+  }
+}
+
+@media (max-width: 720px) {
+  .task-detail__bar { padding: var(--sp-2) var(--sp-3); }
+  .task-detail__body { padding: var(--sp-3); }
+  .task-detail__overview-tab { padding: var(--sp-3); }
+}
+
+// ---------- 窄屏：详情 Tab 的三列改为上下堆叠，每列限高自行滚动 ----------
+@media (max-width: 1100px) {
+  .task-detail__grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-rows: 320px;
+    min-height: 0;
+  }
+
+  .step-list {
+    height: auto;
+    max-height: 240px;
+  }
+}

@@ -1,0 +1,97 @@
+.ev-toolbar__search { width: 260px; max-width: 100%; }
+
+.ev-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-3);
+}
+
+.ev-count {
+  font-size: var(--text-xs);
+  color: var(--c-text-tertiary);
+}
+
+// 表格填满面板：表头固定，表体自行滚动。
+// scroll.y 为 true 时 Arco 不会给表体设 max-height，且 DOM 层级为
+// 根节点 → Spin → spin-children → container → content-scroll → content-inner → header/body，
+// 所以要把高度沿这条链逐层传下去，任何一层断开表体都会撑到内容高度。
+.ev-table {
+  flex: 1;
+  min-height: 0;
+
+  > .arco-spin {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .arco-spin-children,
+  .arco-table-container,
+  .arco-table-content-scroll,
+  .arco-table-content-inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .arco-table-header { flex: none; }
+
+  .arco-table-body {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+  }
+}
+
+.ev-time {
+  font-size: 11px;
+  color: var(--c-text-tertiary);
+}
+
+// 事件类型徽章，配色由 TSX 注入 --ev-color / --ev-soft
+.ev-level {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+  background: var(--ev-soft);
+  color: var(--ev-color);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ev-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--c-text-primary);
+  cursor: pointer;
+  text-align: left;
+  max-width: 100%;
+
+  &:hover {
+    color: var(--c-accent);
+  }
+}
+
+.ev-action {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--c-text-secondary);
+}
+
+.ev-muted {
+  font-size: var(--text-xs);
+  color: var(--c-text-disabled);
+}
+
+@media (max-width: 720px) {
+  .ev-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

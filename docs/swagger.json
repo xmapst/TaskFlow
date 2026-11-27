@@ -1,0 +1,2131 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "An `API` for cross-platform custom orchestration of execution steps\nwithout any third-party dependencies. Based on `DAG`, it implements the scheduling\nfunction of sequential execution of dependent steps and concurrent execution of\nnon-dependent steps. \u003cbr /\u003e\u003cbr /\u003e It provides `API` remote operation mode, batch\nexecution of `Shell` , `Powershell` , `Python` and other commands, and easily\ncompletes common management tasks such as running automated operation and maintenance\nscripts, polling processes, installing or uninstalling software, updating applications,\nand installing patches.",
+        "title": "TaskFlow API",
+        "contact": {
+            "name": "TaskFlow",
+            "url": "https://github.com/xmapst/taskflow/issues"
+        },
+        "license": {
+            "name": "GPL-3.0",
+            "url": "https://github.com/xmapst/taskflow/blob/main/LICENSE"
+        },
+        "version": "1.0"
+    },
+    "paths": {
+        "/api/v1/approval/callback": {
+            "put": {
+                "description": "校验消息格式后通过进程内 RPC 转交审批决策。204 不表示审批已采纳。",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批"
+                ],
+                "summary": "接收外部审批结果",
+                "parameters": [
+                    {
+                        "description": "审批结果",
+                        "name": "decision",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/iproto.ApprovalDecision"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "无响应体"
+                    },
+                    "400": {
+                        "description": "回调格式错误"
+                    },
+                    "503": {
+                        "description": "审批服务不可用"
+                    }
+                }
+            },
+            "post": {
+                "description": "校验消息格式后通过进程内 RPC 转交审批决策。204 不表示审批已采纳。",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "审批"
+                ],
+                "summary": "接收外部审批结果",
+                "parameters": [
+                    {
+                        "description": "审批结果",
+                        "name": "decision",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/iproto.ApprovalDecision"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "无响应体"
+                    },
+                    "400": {
+                        "description": "回调格式错误"
+                    },
+                    "503": {
+                        "description": "审批服务不可用"
+                    }
+                }
+            }
+        },
+        "/api/v1/files": {
+            "post": {
+                "description": "创建 tus 1.0 上传并返回 Location。Upload-Metadata 必须包含 task_name，值为任务名称的 Base64 编码。指定 Upload-Length 或 Upload-Defer-Length: 1；携带首段数据时使用 application/offset+octet-stream。",
+                "consumes": [
+                    "application/offset+octet-stream"
+                ],
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "创建续传上传",
+                "parameters": [
+                    {
+                        "enum": [
+                            "1.0.0"
+                        ],
+                        "type": "string",
+                        "description": "tus 版本",
+                        "name": "Tus-Resumable",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "上传总字节数",
+                        "name": "Upload-Length",
+                        "in": "header"
+                    },
+                    {
+                        "enum": [
+                            1
+                        ],
+                        "type": "integer",
+                        "description": "总长度暂未知",
+                        "name": "Upload-Defer-Length",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "tus 元数据（必含 task_name）",
+                        "name": "Upload-Metadata",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "可选的首段二进制数据",
+                        "name": "chunk",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "上传已创建",
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "后续请求使用的上传地址"
+                            },
+                            "Upload-Offset": {
+                                "type": "integer",
+                                "description": "已接收字节数（携带首段数据时）"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "上传头或元数据不合法",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "412": {
+                        "description": "缺少或不支持 Tus-Resumable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "options": {
+                "description": "返回 tus 版本与扩展，不需要发送 Tus-Resumable。",
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "查询续传能力",
+                "responses": {
+                    "200": {
+                        "description": "无响应体",
+                        "headers": {
+                            "Tus-Extension": {
+                                "type": "string",
+                                "description": "支持的 tus 扩展"
+                            },
+                            "Tus-Version": {
+                                "type": "string",
+                                "description": "支持的 tus 版本"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/files/": {
+            "post": {
+                "description": "创建 tus 1.0 上传并返回 Location。Upload-Metadata 必须包含 task_name，值为任务名称的 Base64 编码。指定 Upload-Length 或 Upload-Defer-Length: 1；携带首段数据时使用 application/offset+octet-stream。",
+                "consumes": [
+                    "application/offset+octet-stream"
+                ],
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "创建续传上传",
+                "parameters": [
+                    {
+                        "enum": [
+                            "1.0.0"
+                        ],
+                        "type": "string",
+                        "description": "tus 版本",
+                        "name": "Tus-Resumable",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "上传总字节数",
+                        "name": "Upload-Length",
+                        "in": "header"
+                    },
+                    {
+                        "enum": [
+                            1
+                        ],
+                        "type": "integer",
+                        "description": "总长度暂未知",
+                        "name": "Upload-Defer-Length",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "tus 元数据（必含 task_name）",
+                        "name": "Upload-Metadata",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "可选的首段二进制数据",
+                        "name": "chunk",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "上传已创建",
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "后续请求使用的上传地址"
+                            },
+                            "Upload-Offset": {
+                                "type": "integer",
+                                "description": "已接收字节数（携带首段数据时）"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "上传头或元数据不合法",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "412": {
+                        "description": "缺少或不支持 Tus-Resumable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "options": {
+                "description": "返回 tus 版本与扩展，不需要发送 Tus-Resumable。",
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "查询续传能力",
+                "responses": {
+                    "200": {
+                        "description": "无响应体",
+                        "headers": {
+                            "Tus-Extension": {
+                                "type": "string",
+                                "description": "支持的 tus 扩展"
+                            },
+                            "Tus-Version": {
+                                "type": "string",
+                                "description": "支持的 tus 版本"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/files/{task}/{upload}": {
+            "get": {
+                "description": "从上传地址读取暂存数据；上传完成后暂存文件可能已被移至工作区。",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "读取续传数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location 中的任务名称段",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Location 中的上传 ID",
+                        "name": "upload",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "字节范围",
+                        "name": "Range",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "暂存数据（媒体类型可能根据上传元数据而变化）",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "204": {
+                        "description": "尚无可下载数据"
+                    },
+                    "206": {
+                        "description": "部分数据",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "404": {
+                        "description": "上传不存在",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "416": {
+                        "description": "字节范围不可满足",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "终止续传上传",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location 中的任务名称段",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Location 中的上传 ID",
+                        "name": "upload",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "1.0.0"
+                        ],
+                        "type": "string",
+                        "description": "tus 版本",
+                        "name": "Tus-Resumable",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "上传已终止，无响应体"
+                    },
+                    "404": {
+                        "description": "上传不存在",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "412": {
+                        "description": "缺少或不支持 Tus-Resumable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "options": {
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "查询上传地址的续传能力",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location 中的任务名称段",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Location 中的上传 ID",
+                        "name": "upload",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "无响应体",
+                        "headers": {
+                            "Tus-Extension": {
+                                "type": "string",
+                                "description": "支持的 tus 扩展"
+                            },
+                            "Tus-Version": {
+                                "type": "string",
+                                "description": "支持的 tus 版本"
+                            }
+                        }
+                    }
+                }
+            },
+            "head": {
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "查询上传进度",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location 中的任务名称段",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Location 中的上传 ID",
+                        "name": "upload",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "无响应体",
+                        "headers": {
+                            "Upload-Defer-Length": {
+                                "type": "integer",
+                                "description": "长度未知时为 1"
+                            },
+                            "Upload-Length": {
+                                "type": "integer",
+                                "description": "上传总字节数（长度已知时）"
+                            },
+                            "Upload-Metadata": {
+                                "type": "string",
+                                "description": "上传元数据"
+                            },
+                            "Upload-Offset": {
+                                "type": "integer",
+                                "description": "已接收字节数"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "上传不存在"
+                    }
+                }
+            },
+            "patch": {
+                "description": "使用 Location 中的上传地址；Upload-Offset 必须等于当前上传偏移量。",
+                "consumes": [
+                    "application/offset+octet-stream"
+                ],
+                "tags": [
+                    "续传上传"
+                ],
+                "summary": "追加上传数据",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Location 中的任务名称段",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Location 中的上传 ID",
+                        "name": "upload",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "1.0.0"
+                        ],
+                        "type": "string",
+                        "description": "tus 版本",
+                        "name": "Tus-Resumable",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "当前字节偏移量",
+                        "name": "Upload-Offset",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "为延迟长度的上传设置总字节数",
+                        "name": "Upload-Length",
+                        "in": "header"
+                    },
+                    {
+                        "description": "二进制数据块",
+                        "name": "chunk",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "无响应体",
+                        "headers": {
+                            "Upload-Offset": {
+                                "type": "integer",
+                                "description": "追加后的字节偏移量"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "上传头或 Content-Type 不合法",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "上传不存在",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "上传偏移量不匹配",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "412": {
+                        "description": "缺少或不支持 Tus-Resumable",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/system": {
+            "get": {
+                "description": "返回已生效的工作池大小及 CPU、内存、磁盘指标。容量单位为字节，使用率为百分比，无法读取的指标为 null。实时指标订阅走 /api/v1/ws 的 system 主题。",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "系统"
+                ],
+                "summary": "获取系统状态",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_SSystemConfig"
+                        }
+                    },
+                    "503": {
+                        "description": "工作池查询不可用或超时",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task": {
+            "get": {
+                "description": "获取任务列表；实时列表订阅走 /api/v1/ws 的 tasks 主题",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "任务"
+                ],
+                "summary": "列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "页码，-1 为不分页",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 15,
+                        "description": "每页任务数",
+                        "name": "size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "任务名前缀",
+                        "name": "prefix",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_STaskListDetailRes"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "JSON/YAML 请求体为任务对象；时长字段支持 Go 时长字符串（如 2m）或整数纳秒。Swagger 2.0 的时长 schema 展示整数形式。",
+                "consumes": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "任务"
+                ],
+                "summary": "创建",
+                "parameters": [
+                    {
+                        "description": "任务内容",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/iproto.STaskReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_STaskCreateRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/{task}": {
+            "get": {
+                "description": "获取任务详情；实时订阅走 /api/v1/ws 的 task 主题",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "任务"
+                ],
+                "summary": "详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_STaskRes"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "管理任务, 支持暂停、恢复、终止、超时暂停自动恢复",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "任务"
+                ],
+                "summary": "管理",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "kill",
+                            "pause",
+                            "resume"
+                        ],
+                        "type": "string",
+                        "description": "操作",
+                        "name": "action",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "-1",
+                        "description": "pause 时的 Go 时长（如 30s），-1 表示手动恢复",
+                        "name": "duration",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-any"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除指定任务",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "任务"
+                ],
+                "summary": "删除",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/{task}/dump": {
+            "get": {
+                "description": "导出任务",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "任务"
+                ],
+                "summary": "导出",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "data 字段为 YAML 字符串",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/{task}/step": {
+            "get": {
+                "description": "获取指定任务的步骤列表；实时列表订阅走 /api/v1/ws 的 steps 主题",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "步骤"
+                ],
+                "summary": "列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_SStepsRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/{task}/step/{step}": {
+            "get": {
+                "description": "获取步骤详情；实时订阅走 /api/v1/ws 的 step 主题",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "步骤"
+                ],
+                "summary": "详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "步骤名称",
+                        "name": "step",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_SStepRes"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "管理指定任务的指定步骤, 支持暂停、恢复、终止、超时暂停自动恢复",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "步骤"
+                ],
+                "summary": "管理",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "步骤名称",
+                        "name": "step",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "kill",
+                            "pause",
+                            "resume"
+                        ],
+                        "type": "string",
+                        "description": "操作",
+                        "name": "action",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "-1",
+                        "description": "pause 时的 Go 时长（如 30s），-1 表示手动恢复",
+                        "name": "duration",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/{task}/step/{step}/log": {
+            "get": {
+                "description": "指定任务指定步骤的执行输出；实时候选订阅走 /api/v1/ws 的 step-log 主题",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "步骤"
+                ],
+                "summary": "日志",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "步骤名称",
+                        "name": "step",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_SStepLogsRes"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/task/{task}/workspace": {
+            "get": {
+                "description": "目录返回 API 包；文件直接返回字节和 Content-Disposition: attachment，Content-Type 按文件类型决定",
+                "produces": [
+                    "application/json",
+                    "application/yaml",
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "工作目录"
+                ],
+                "summary": "列表或下载",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "工作区相对路径，省略时列出根目录",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "目录或错误为 API 响应包；有 Content-Disposition 时为原始文件字节",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_SFileListRes"
+                        },
+                        "headers": {
+                            "Content-Disposition": {
+                                "type": "string",
+                                "description": "下载文件时返回 attachment 及文件名"
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除指定文件或递归删除目录。path 可重复传递以一次删除多项；单个路径失败不会中断其余路径，全部执行完后汇总失败项返回。",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "工作目录"
+                ],
+                "summary": "删除",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "任务名称",
+                        "name": "task",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "multi",
+                        "description": "工作区相对路径，可重复传递多个",
+                        "name": "path",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/terminal": {
+            "get": {
+                "description": "通过 WebSocket 连接终端。可用查询参数 cols、rows（各 1 至 1000）指定初始尺寸，缺省或无效时为 80x24。普通二进制帧传输终端数据，客户端使用 JSON 文本帧（cols、rows）调整尺寸。服务端宣布 {\"zmodem\":true}，ZMODEM 帧会经过 PTY 交给 Shell 中的 rz/sz 程序；协议流由终端审计过滤器识别并从录像文本中剔除。",
+                "tags": [
+                    "终端"
+                ],
+                "summary": "连接 WebShell",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "初始列数（1 至 1000）",
+                        "name": "cols",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "初始行数（1 至 1000）",
+                        "name": "rows",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "WebSocket 升级成功"
+                    },
+                    "400": {
+                        "description": "WebSocket 握手参数无效",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "WebSocket Origin 校验失败",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "426": {
+                        "description": "需要 WebSocket 升级请求",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/terminal/replays": {
+            "get": {
+                "description": "按录像日期倒序列出已完成的 WebShell 录像。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "终端"
+                ],
+                "summary": "列出终端录像",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "每页数量（1 至 100）",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "跳过的条数",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/iproto.ReplayList"
+                        }
+                    },
+                    "400": {
+                        "description": "分页参数无效",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "跨源请求被拒绝",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "无法读取录像",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/terminal/replays/{id}": {
+            "get": {
+                "description": "按录像 ID 查库获取录像日期和文件路径，返回解压后的 asciinema v2 录像，第一行为 JSON 头，后续每行是带时间戳的终端输出或尺寸事件。",
+                "produces": [
+                    "application/x-ndjson"
+                ],
+                "tags": [
+                    "终端"
+                ],
+                "summary": "读取终端录像",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "录像 UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "asciinema v2 NDJSON",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "跨源请求被拒绝",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "录像不存在",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "无法读取录像",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/terminal/sessions": {
+            "get": {
+                "description": "返回当前所有已连接的交互式 WebShell 会话。",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "终端"
+                ],
+                "summary": "列出在线终端会话",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/iproto.WebShellSession"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "跨源请求被拒绝",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/terminal/sessions/{id}": {
+            "delete": {
+                "description": "强制关闭指定 ID 的 WebShell 会话；会话不存在时返回 404。",
+                "tags": [
+                    "终端"
+                ],
+                "summary": "断开终端会话",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "会话 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "403": {
+                        "description": "跨源请求被拒绝",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "会话不存在",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/terminal/sessions/{id}/watch": {
+            "get": {
+                "description": "以 NDJSON 实时推送指定会话的 asciinema v2 录像行；只读，没有输入通道。首行固定为空行，随后每行是一个录像事件，空闲时每 15 秒发一个空行保活。",
+                "produces": [
+                    "application/x-ndjson"
+                ],
+                "tags": [
+                    "终端"
+                ],
+                "summary": "观看终端会话",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "会话 ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "asciinema v2 NDJSON",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "跨源请求被拒绝",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "会话不存在",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "503": {
+                        "description": "会话已结束或观看人数已满",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/healthyz": {
+            "get": {
+                "description": "用于检测服务是否正常",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "默认"
+                ],
+                "summary": "健康",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_SHealthyz"
+                        }
+                    }
+                }
+            }
+        },
+        "/heartbeat": {
+            "get": {
+                "description": "用于判断服务是否正常",
+                "tags": [
+                    "默认"
+                ],
+                "summary": "心跳",
+                "responses": {
+                    "200": {
+                        "description": "服务可用，无响应体"
+                    }
+                }
+            },
+            "head": {
+                "description": "用于判断服务是否正常",
+                "tags": [
+                    "默认"
+                ],
+                "summary": "心跳",
+                "responses": {
+                    "200": {
+                        "description": "服务可用，无响应体"
+                    }
+                }
+            }
+        },
+        "/version": {
+            "get": {
+                "description": "获取版本信息",
+                "produces": [
+                    "application/json",
+                    "application/yaml"
+                ],
+                "tags": [
+                    "默认"
+                ],
+                "summary": "版本",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response-iproto_SVersion"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.Code": {
+            "type": "integer",
+            "enum": [
+                0,
+                1001,
+                1002,
+                1003,
+                1004,
+                1005,
+                1006
+            ],
+            "x-enum-varnames": [
+                "CodeSuccess",
+                "CodeRunning",
+                "CodeFailed",
+                "CodeNoData",
+                "CodePending",
+                "CodePaused",
+                "CodeSkipped"
+            ]
+        },
+        "api.Response-any": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {},
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_SFileListRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "$ref": "#/definitions/iproto.SFileListRes"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_SHealthyz": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "$ref": "#/definitions/iproto.SHealthyz"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_SStepLogsRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SStepLogRes"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_SStepRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "$ref": "#/definitions/iproto.SStepRes"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_SStepsRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SStepRes"
+                    }
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_SSystemConfig": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "$ref": "#/definitions/iproto.SSystemConfig"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_STaskCreateRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "$ref": "#/definitions/iproto.STaskCreateRes"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_STaskListDetailRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "$ref": "#/definitions/iproto.STaskListDetailRes"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_STaskRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "$ref": "#/definitions/iproto.STaskRes"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-iproto_SVersion": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "$ref": "#/definitions/iproto.SVersion"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.Response-string": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/api.Code"
+                },
+                "data": {
+                    "type": "string"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "iproto.ApprovalDecision": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "step_name": {
+                    "type": "string"
+                },
+                "task_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.Replay": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "size": {
+                    "description": "compressed bytes",
+                    "type": "integer"
+                }
+            }
+        },
+        "iproto.ReplayList": {
+            "type": "object",
+            "properties": {
+                "hasMore": {
+                    "type": "boolean"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.Replay"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "iproto.SEnv": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "secret": {
+                    "type": "boolean"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.SFileListRes": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SFileRes"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "iproto.SFileRes": {
+            "type": "object",
+            "properties": {
+                "isDir": {
+                    "type": "boolean"
+                },
+                "modTime": {
+                    "type": "integer"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "iproto.SHealthyz": {
+            "type": "object",
+            "properties": {
+                "client": {
+                    "type": "string"
+                },
+                "server": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.SPageRes": {
+            "type": "object",
+            "properties": {
+                "current": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "iproto.SRetryPolicy": {
+            "type": "object",
+            "properties": {
+                "interval": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "jitter": {
+                    "type": "number",
+                    "maximum": 1,
+                    "minimum": 0
+                },
+                "maxAttempts": {
+                    "type": "integer"
+                },
+                "maxInterval": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "multiplier": {
+                    "type": "number"
+                }
+            }
+        },
+        "iproto.SStepEdge": {
+            "type": "object",
+            "properties": {
+                "step": {
+                    "type": "string"
+                },
+                "trigger": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.SStepLogRes": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "line": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        },
+        "iproto.SStepReq": {
+            "type": "object",
+            "required": [
+                "content",
+                "kind"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "env": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SEnv"
+                    }
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "object"
+                },
+                "retryPolicy": {
+                    "$ref": "#/definitions/iproto.SRetryPolicy"
+                },
+                "routing": {
+                    "$ref": "#/definitions/iproto.SStepRouting"
+                },
+                "timeout": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "iproto.SStepRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "desc": {
+                    "type": "string"
+                },
+                "env": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SEnv"
+                    }
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "object"
+                },
+                "retryPolicy": {
+                    "$ref": "#/definitions/iproto.SRetryPolicy"
+                },
+                "routing": {
+                    "$ref": "#/definitions/iproto.SStepRouting"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "time": {
+                    "$ref": "#/definitions/iproto.STimeRes"
+                },
+                "timeout": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "iproto.SStepRouting": {
+            "type": "object",
+            "properties": {
+                "edges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SStepEdge"
+                    }
+                },
+                "emit": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "join": {
+                    "type": "string",
+                    "enum": [
+                        "all",
+                        "any"
+                    ]
+                }
+            }
+        },
+        "iproto.SSystemConfig": {
+            "type": "object",
+            "properties": {
+                "cpu_cores": {
+                    "type": "integer"
+                },
+                "cpu_usage_percent": {
+                    "type": "number"
+                },
+                "disks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SSystemDisk"
+                    }
+                },
+                "memory_total_bytes": {
+                    "type": "integer"
+                },
+                "memory_used_percent": {
+                    "type": "number"
+                },
+                "pool_size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "iproto.SSystemDisk": {
+            "type": "object",
+            "properties": {
+                "device": {
+                    "type": "string"
+                },
+                "fs_type": {
+                    "type": "string"
+                },
+                "mountpoint": {
+                    "type": "string"
+                },
+                "total_bytes": {
+                    "type": "integer"
+                },
+                "used_bytes": {
+                    "type": "integer"
+                },
+                "used_percent": {
+                    "type": "number"
+                }
+            }
+        },
+        "iproto.STaskCreateRes": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.STaskListDetailRes": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "$ref": "#/definitions/iproto.SPageRes"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.STaskRes"
+                    }
+                }
+            }
+        },
+        "iproto.STaskReq": {
+            "type": "object",
+            "required": [
+                "step"
+            ],
+            "properties": {
+                "cleanup": {
+                    "type": "boolean"
+                },
+                "env": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SEnv"
+                    }
+                },
+                "step": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SStepReq"
+                    }
+                },
+                "timeout": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "workdir": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.STaskRes": {
+            "type": "object",
+            "properties": {
+                "cleanup": {
+                    "type": "boolean"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "env": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/iproto.SEnv"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
+                },
+                "time": {
+                    "$ref": "#/definitions/iproto.STimeRes"
+                },
+                "timeout": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "workdir": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.STimeRes": {
+            "type": "object",
+            "properties": {
+                "end": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.SVersion": {
+            "type": "object",
+            "properties": {
+                "buildTime": {
+                    "type": "string"
+                },
+                "git": {
+                    "$ref": "#/definitions/iproto.SVersionGit"
+                },
+                "go": {
+                    "$ref": "#/definitions/iproto.SVersionGO"
+                },
+                "user": {
+                    "$ref": "#/definitions/iproto.SVersionUser"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.SVersionGO": {
+            "type": "object",
+            "properties": {
+                "arch": {
+                    "type": "string"
+                },
+                "os": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.SVersionGit": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "type": "string"
+                },
+                "commit": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.SVersionUser": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "iproto.WebShellSession": {
+            "type": "object",
+            "properties": {
+                "connectedAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "remoteAddr": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

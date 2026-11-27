@@ -1,0 +1,302 @@
+// ============================================================
+// 页面骨架
+// ============================================================
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  height: 100%;
+  padding: var(--sp-5);
+  overflow: hidden;
+
+  &__toolbar,
+  &__stats,
+  &__footer {
+    flex-shrink: 0;
+  }
+
+  &__content {
+    flex: 1;
+    min-height: 0;
+
+    &--scroll {
+      overflow-y: auto;
+      overflow-x: hidden;
+      // 留出滚动条宽度，避免出现时内容跳动
+      padding-right: var(--sp-1);
+    }
+
+    // 内容区不滚动，由子级（Panel grow）占满剩余高度后各自滚动
+    &--fill {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+  }
+}
+
+// 窄屏收紧页面内边距，侧栏已折叠，不必再留 20px
+@media (max-width: 720px) {
+  .page {
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+  }
+}
+
+// ============================================================
+// 面板
+// ============================================================
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--c-bg-surface);
+  border: 1px solid var(--c-border-subtle);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+
+  &--grow {
+    flex: 1;
+    min-height: 0;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    background: var(--c-bg-inset);
+    border-bottom: 1px solid var(--c-border-subtle);
+    flex-shrink: 0;
+    min-height: 46px;
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    color: var(--c-accent);
+    font-size: 15px;
+  }
+
+  &__title-text {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--c-text-primary);
+    letter-spacing: 0.01em;
+  }
+
+  &__extra {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-left: var(--sp-1);
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-shrink: 0;
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+    padding: var(--sp-4);
+    overflow: auto;
+
+    &--flush {
+      padding: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
+
+// ============================================================
+// 键值信息项
+// ============================================================
+.meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.meta-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  transition: background-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    background: var(--c-bg-inset);
+  }
+
+  &__label {
+    font-size: var(--text-xs);
+    color: var(--c-text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__value {
+    font-size: var(--text-sm);
+    color: var(--c-text-primary);
+    font-weight: 500;
+    text-align: right;
+    min-width: 0;
+
+    &--empty {
+      color: var(--c-text-tertiary);
+      font-weight: 400;
+    }
+  }
+}
+
+// ============================================================
+// 空态与加载态
+// ============================================================
+.empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-12) var(--sp-5);
+  text-align: center;
+
+  &--compact {
+    padding: var(--sp-6) var(--sp-4);
+  }
+
+  &__text {
+    max-width: 460px;
+    font-size: var(--text-xs);
+    color: var(--c-text-tertiary);
+    line-height: var(--leading-relaxed);
+  }
+
+  &__action {
+    margin-top: var(--sp-2);
+  }
+}
+
+.loading-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-12);
+  min-height: 180px;
+}
+
+// ============================================================
+// 实时连接指示
+// ============================================================
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.4;
+
+  &__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: var(--r-full);
+    background: currentcolor;
+    flex-shrink: 0;
+  }
+
+  // 连接正常：脉动表示数据在流动
+  &--on {
+    background: var(--c-state-running-soft);
+    color: var(--c-state-running);
+
+    .live-badge__dot {
+      animation: pulse-dim 1.4s var(--ease-in-out) infinite;
+      box-shadow: 0 0 6px currentcolor;
+    }
+  }
+
+  // 已结束：静止，语义是"正常完成"而非"异常中断"
+  &--done {
+    background: var(--c-state-stopped-soft);
+    color: var(--c-state-stopped);
+  }
+
+  // 断开：警示色，与"已结束"区分开
+  &--off {
+    background: var(--c-state-pending-soft);
+    color: var(--c-state-pending);
+
+    .live-badge__dot {
+      animation: pulse-dim 0.9s var(--ease-in-out) infinite;
+    }
+  }
+}
+
+// ============================================================
+// 环境变量列表
+// ============================================================
+.env-list {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  font-size: var(--text-xs);
+
+  th, td {
+    padding: var(--sp-2) var(--sp-3);
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--c-border-subtle);
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-weight: 600;
+    color: var(--c-text-secondary);
+    background: var(--c-bg-inset);
+  }
+
+  tbody tr:hover td { background: var(--c-bg-inset); }
+  tbody tr:last-child td { border-bottom: 0; }
+
+  th:first-child,
+  &__name { width: 34%; }
+
+  &__name {
+    font-weight: 600;
+    color: var(--c-accent);
+    overflow-wrap: anywhere;
+  }
+
+  &__value {
+    color: var(--c-text-secondary);
+    line-height: var(--leading-normal);
+    overflow-wrap: anywhere;
+  }
+
+  &__empty {
+    font-size: var(--text-xs);
+    color: var(--c-text-tertiary);
+    padding: var(--sp-2) 0;
+  }
+}

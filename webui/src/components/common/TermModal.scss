@@ -1,0 +1,66 @@
+// 终端类 Modal（录像回放、实时观看）共用的外壳：固定宽高、标题栏带最大化按钮、内容区无内边距。
+// 页面各自在 .arco-modal.term-modal 之上补充差异（内容区高度算法、配色等）。
+.arco-modal.term-modal {
+  --term-modal-height: min(820px, calc(100dvh - 32px));
+  --term-modal-header-height: 48px;
+  width: min(1200px, calc(100vw - 32px));
+  overflow: hidden;
+  background: var(--color-bg-3);
+
+  // 最大化：弹窗固定铺满视口（去掉边框，否则 100dvh + 2px 会撑出滚动条），
+  // 内容区吃掉标题栏之外的全部高度，由各页面的终端区域自行伸缩。
+  &.term-modal--expanded {
+    --term-modal-height: 100dvh;
+    // 用 inline-flex 而不是 flex：Arco 的垂直居中依赖 .arco-modal 保持行内元素
+    display: inline-flex;
+    flex-direction: column;
+    vertical-align: middle;
+    width: 100vw;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    --modal-radius: 0px;
+
+    // Arco 在 .arco-modal 里还套了一层无 class 的 div（含标题栏与内容区），高度要从这层传下去
+    > div:has(> .arco-modal-content) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .arco-modal-header { flex: none; }
+
+    .arco-modal-content {
+      flex: 1;
+      height: auto;
+      min-height: 0;
+      max-height: none;
+    }
+  }
+
+  .arco-modal-header {
+    height: var(--term-modal-header-height);
+    padding-inline: var(--sp-4) 52px;
+  }
+
+  .arco-modal-title { min-width: 0; }
+
+  .arco-modal-content {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+  }
+}
+
+.term-modal__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  min-width: 0;
+  text-align: left;
+
+  span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  button { flex: none; }
+}

@@ -1,0 +1,51 @@
+version: 2
+project_name: taskflow
+
+before:
+  hooks:
+    - apk add --no-cache cmd:llvm-strip
+    - go mod tidy
+    - go vet ./...
+    - go fmt ./...
+
+builds:
+  - id: taskflow
+    main: ./cmd
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X "github.com/xmapst/taskflow/pkg/utility.Version={{.Version}}"
+      - -X "github.com/xmapst/taskflow/pkg/utility.GitUrl={{.GitURL}}"
+      - -X "github.com/xmapst/taskflow/pkg/utility.GitBranch={{.Branch}}"
+      - -X "github.com/xmapst/taskflow/pkg/utility.GitCommit={{.FullCommit}}"
+      - -X "github.com/xmapst/taskflow/pkg/utility.BuildTime={{.Date}}"
+    hooks:
+      post:
+        - cmd: >-
+            sh -c 'if [ "$TARGET_OS" = darwin ]; then
+              exec llvm-strip -x "$BINARY_PATH";
+            else
+              exec llvm-strip --strip-unneeded "$BINARY_PATH";
+            fi'
+          env:
+            - 'TARGET_OS={{ .Os }}'
+            - 'BINARY_PATH={{ .Path }}'
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - "linux"
+      - "windows"
+      - "darwin"
+    goarch:
+      - "386"
+      - "arm64"
+      - "amd64"
+    goamd64:
+      - "v1"
+
+archives:
+  - formats: [binary]
+
+release:
+  disable: true

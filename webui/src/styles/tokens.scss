@@ -1,0 +1,247 @@
+// ============================================================
+// 设计令牌 —— 深浅双主题
+//
+// 分层规则：
+//  1. 尺寸、圆角、层级、动效等与主题无关的量放在 :root；
+//  2. 一切颜色都走语义变量（--c-*），由 [data-theme] 覆写，
+//     业务代码里不写字面色值，否则切换主题必然漏色；
+//  3. 状态色成组定义：--c-state-<token> 与 --c-state-<token>-soft，
+//     token 取自 constants/state.ts 的 STATE_META.token。
+//
+// 与 Arco Design 的关系见 arco-theme.scss：那里把本文件的语义色
+// 映射到 Arco 的色板变量（RGB 三元组格式），实现一处切换、组件全跟随。
+// ============================================================
+
+:root {
+  // ---------- 字体 ----------
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 34px;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.75;
+
+  // ---------- 间距（4px 基准栅格） ----------
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  // ---------- 圆角 ----------
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
+
+  // ---------- 动效 ----------
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 340ms;
+
+  // ---------- 层级 ----------
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-drawer: 900;
+  --z-dialog: 1000;
+  --z-popover: 1100;
+  --z-toast: 1200;
+
+  // ---------- 布局 ----------
+  --sidebar-w: 216px;
+  --sidebar-w-collapsed: 64px;
+  --topbar-h: 56px;
+}
+
+// ============================================================
+// 深色主题（默认）—— 任务编排与执行
+// ============================================================
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  // 背景：从最深的画布到最亮的抬升面，四级层次
+  --c-bg-canvas: #070b14;
+  --c-bg-base: #0b101c;
+  --c-bg-surface: #111827;
+  --c-bg-raised: #18202f;
+  --c-bg-inset: #060a12;
+  --c-bg-overlay: rgba(3, 6, 14, 0.72);
+
+  // 文本
+  --c-text-primary: #e8eefb;
+  --c-text-secondary: #98a6c0;
+  --c-text-tertiary: #64738d;
+  --c-text-disabled: #414c60;
+  --c-text-inverse: #0b101c;
+
+  // 描边
+  --c-border-subtle: rgba(148, 176, 232, 0.09);
+  --c-border-base: rgba(148, 176, 232, 0.17);
+  --c-border-strong: rgba(148, 176, 232, 0.32);
+
+  // 品牌强调：青 → 紫的霓虹主轴
+  --c-accent: #22d3ee;
+  --c-accent-hover: #67e8f9;
+  --c-accent-active: #06b6d4;
+  --c-accent-soft: rgba(34, 211, 238, 0.14);
+  --c-accent-glow: rgba(34, 211, 238, 0.42);
+  --c-accent-alt: #a78bfa;
+  --c-accent-alt-soft: rgba(167, 139, 250, 0.16);
+
+  // Arco 色板需要 RGB 三元组，与上面的 hex 保持同色
+  --c-accent-rgb: 34, 211, 238;
+  --c-success-rgb: 52, 211, 153;
+  --c-warning-rgb: 251, 191, 36;
+  --c-danger-rgb: 251, 113, 133;
+
+  // 状态色，token 对应 STATE_META.token
+  --c-state-running: #22d3ee;
+  --c-state-running-soft: rgba(34, 211, 238, 0.15);
+  --c-state-pending: #fbbf24;
+  --c-state-pending-soft: rgba(251, 191, 36, 0.15);
+  --c-state-paused: #fb923c;
+  --c-state-paused-soft: rgba(251, 146, 60, 0.15);
+  --c-state-failed: #fb7185;
+  --c-state-failed-soft: rgba(251, 113, 133, 0.15);
+  --c-state-stopped: #34d399;
+  --c-state-stopped-soft: rgba(52, 211, 153, 0.15);
+  --c-state-skipped: #94a3b8;
+  --c-state-skipped-soft: rgba(148, 163, 184, 0.14);
+  --c-state-unknown: #64748b;
+  --c-state-unknown-soft: rgba(100, 116, 139, 0.14);
+
+  // 反馈语义色（复用状态色保持一致）
+  --c-success: var(--c-state-stopped);
+  --c-warning: var(--c-state-pending);
+  --c-danger: var(--c-state-failed);
+  --c-info: var(--c-state-skipped);
+
+  // 阴影：深色下主要靠环形光而非投影建立层次
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.58);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.66);
+  --ring-accent: 0 0 0 1px rgba(34, 211, 238, 0.4), 0 0 18px rgba(34, 211, 238, 0.22);
+
+  // 终端与代码区
+  --c-code-bg: #05080f;
+  --c-code-text: #c8d6ef;
+  --c-log-bg: #04070d;
+  --c-log-text: #b7c7e3;
+  --c-log-gutter: #3d4a63;
+
+  // DAG 画布
+  --c-graph-bg: #080d17;
+  --c-graph-dot: rgba(148, 176, 232, 0.16);
+  --c-graph-edge: #3f4d68;
+
+  // 滚动条
+  --c-scroll-thumb: rgba(148, 176, 232, 0.2);
+  --c-scroll-thumb-hover: rgba(148, 176, 232, 0.36);
+}
+
+// ============================================================
+// 浅色主题
+// ============================================================
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --c-bg-canvas: #eef1f7;
+  --c-bg-base: #f7f9fc;
+  --c-bg-surface: #ffffff;
+  --c-bg-raised: #ffffff;
+  --c-bg-inset: #f1f4f9;
+  --c-bg-overlay: rgba(15, 23, 42, 0.42);
+
+  --c-text-primary: #101828;
+  --c-text-secondary: #5a6577;
+  --c-text-tertiary: #8b95a7;
+  --c-text-disabled: #b8c0cd;
+  --c-text-inverse: #ffffff;
+
+  --c-border-subtle: rgba(16, 24, 40, 0.07);
+  --c-border-base: rgba(16, 24, 40, 0.13);
+  --c-border-strong: rgba(16, 24, 40, 0.22);
+
+  // 浅色下青色对比度不足，主强调换用更深的靛青
+  --c-accent: #0e7490;
+  --c-accent-hover: #0891b2;
+  --c-accent-active: #155e75;
+  --c-accent-soft: rgba(14, 116, 144, 0.1);
+  --c-accent-glow: rgba(14, 116, 144, 0.22);
+  --c-accent-alt: #7c3aed;
+  --c-accent-alt-soft: rgba(124, 58, 237, 0.1);
+
+  --c-accent-rgb: 14, 116, 144;
+  --c-success-rgb: 4, 120, 87;
+  --c-warning-rgb: 180, 83, 9;
+  --c-danger-rgb: 190, 18, 60;
+
+  --c-state-running: #0e7490;
+  --c-state-running-soft: rgba(14, 116, 144, 0.1);
+  --c-state-pending: #b45309;
+  --c-state-pending-soft: rgba(180, 83, 9, 0.1);
+  --c-state-paused: #c2410c;
+  --c-state-paused-soft: rgba(194, 65, 12, 0.1);
+  --c-state-failed: #be123c;
+  --c-state-failed-soft: rgba(190, 18, 60, 0.09);
+  --c-state-stopped: #047857;
+  --c-state-stopped-soft: rgba(4, 120, 87, 0.1);
+  --c-state-skipped: #64748b;
+  --c-state-skipped-soft: rgba(100, 116, 139, 0.1);
+  --c-state-unknown: #7a8598;
+  --c-state-unknown-soft: rgba(122, 133, 152, 0.1);
+
+  --c-success: var(--c-state-stopped);
+  --c-warning: var(--c-state-pending);
+  --c-danger: var(--c-state-failed);
+  --c-info: var(--c-state-skipped);
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 12px 28px rgba(16, 24, 40, 0.1);
+  --shadow-xl: 0 24px 52px rgba(16, 24, 40, 0.14);
+  --ring-accent: 0 0 0 1px rgba(14, 116, 144, 0.34), 0 0 0 4px rgba(14, 116, 144, 0.1);
+
+  // 代码编辑器随页面主题切换；日志区保留深底。
+  --c-code-bg: var(--c-bg-surface);
+  --c-code-text: var(--c-text-primary);
+  --c-log-bg: #0d1320;
+  --c-log-text: #c6d3e8;
+  --c-log-gutter: #4d5c78;
+
+  --c-graph-bg: #f4f6fb;
+  --c-graph-dot: rgba(16, 24, 40, 0.12);
+  --c-graph-edge: #9fabc2;
+
+  --c-scroll-thumb: rgba(16, 24, 40, 0.18);
+  --c-scroll-thumb-hover: rgba(16, 24, 40, 0.3);
+}
+
+// 尊重系统的降低动效偏好
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

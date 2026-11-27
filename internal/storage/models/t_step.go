@@ -1,0 +1,67 @@
+package models
+
+import (
+	"time"
+	"uuid"
+
+	"gorm.io/datatypes"
+
+	"github.com/xmapst/taskflow/api"
+	"github.com/xmapst/taskflow/api/iproto"
+)
+
+type SStep struct {
+	SBase
+	TaskID      uuid.UUID                                `json:"task_id" gorm:"not null;uniqueIndex:idx_task_id_step_name"`
+	Task        *STask                                   `json:"-" gorm:"foreignKey:TaskID;references:ID;constraint:OnDelete:CASCADE"`
+	Name        string                                   `json:"name,omitempty" gorm:"size:256;uniqueIndex:idx_task_id_step_name;not null;comment:名称"`
+	Desc        string                                   `json:"desc,omitempty" gorm:"comment:描述"`
+	Kind        string                                   `json:"kind,omitempty" gorm:"size:256;index;not null;comment:类型"`
+	Content     string                                   `json:"content,omitempty" gorm:"comment:内容"`
+	Options     datatypes.JSON                           `json:"options" gorm:"column:options;comment:执行器私有参数"`
+	Routing     datatypes.JSONType[*iproto.SStepRouting] `json:"routing" gorm:"column:routing;comment:DAG依赖边、汇合策略与成功标签"`
+	RetryPolicy datatypes.JSONType[*iproto.SRetryPolicy] `json:"retry_policy" gorm:"comment:重试策略"`
+	Timeout     time.Duration                            `json:"timeout,omitempty" gorm:"not null;default:86400000000000;comment:超时时间"`
+	SStepUpdate
+}
+
+func (s *SStep) TableName() string {
+	return "t_step"
+}
+
+type SStepUpdate struct {
+	Message  string        `json:"message,omitempty" gorm:"comment:消息"`
+	State    *State        `json:"state,omitempty" gorm:"index;not null;default:0;comment:状态"`
+	OldState *State        `json:"old_state,omitempty" gorm:"index;not null;default:0;comment:旧状态"`
+	Code     *api.ExecCode `json:"code,omitempty" gorm:"index;not null;default:0;comment:退出码"`
+	STime    *time.Time    `json:"s_time,omitempty" gorm:"comment:开始时间"`
+	ETime    *time.Time    `json:"e_time,omitempty" gorm:"comment:结束时间"`
+}
+
+func (s *SStepUpdate) STimeStr() string {
+	if s.STime == nil || s.STime.IsZero() {
+		return ""
+	}
+	return s.STime.Format(time.RFC3339)
+}
+
+func (s *SStepUpdate) ETimeStr() string {
+	if s.ETime == nil || s.ETime.IsZero() {
+		return ""
+	}
+	return s.ETime.Format(time.RFC3339)
+}
+
+type SSteps []*SStep
+
+func (s SSteps) Len() int {
+	return len(s)
+}
+
+func (s SSteps) Less(i, j int) bool {
+	return s[i].Name < s[j].Name
+}
+
+func (s SSteps) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}

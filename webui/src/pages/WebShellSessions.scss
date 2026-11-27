@@ -1,0 +1,31 @@
+.webshell-sessions {
+  > .arco-alert { margin-bottom: var(--sp-3); }
+}
+
+// 外壳样式见 components/common/TermModal.scss
+.arco-modal.live-terminal .arco-modal-content {
+  height: calc(var(--term-modal-height) - var(--term-modal-header-height));
+}
+
+.live-terminal__viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.live-terminal__screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(var(--terminal-zoom, 1));
+  background: #000;
+}
+
+.live-terminal__status {
+  flex: none;
+  margin: 0;
+  padding: var(--sp-2) var(--sp-4);
+  color: var(--c-text-secondary);
+}

@@ -1,0 +1,240 @@
+// ============================================================
+// 工具栏（放在 Panel 的 actions 区）
+// ============================================================
+.ws-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+
+  &__left, &__right {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+}
+
+// ============================================================
+// 文件列表布局
+// ============================================================
+.ws-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  height: 100%;
+  min-height: 0;
+}
+
+.ws-crumbs {
+  font-size: var(--text-sm);
+
+  .arco-breadcrumb-item {
+    cursor: pointer;
+  }
+}
+
+.ws-count {
+  font-size: var(--text-xs);
+  color: var(--c-text-tertiary);
+}
+
+// ============================================================
+// 文件条目
+// ============================================================
+.ws-name {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    color: var(--c-text-tertiary);
+    flex-shrink: 0;
+
+    // 目录用强调色，与文件区分
+    &--dir {
+      color: var(--c-accent);
+    }
+  }
+
+  &__link {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: var(--c-text-primary);
+    cursor: pointer;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--c-accent);
+    }
+  }
+}
+
+.ws-preview {
+  .arco-modal-content {
+    max-height: 70dvh;
+    overflow: auto;
+  }
+
+  &__title { overflow-wrap: anywhere; }
+
+  &__image {
+    display: block;
+    max-width: 100%;
+    max-height: 65dvh;
+    margin-inline: auto;
+    object-fit: contain;
+  }
+
+  &__text {
+    margin: 0;
+    padding: var(--sp-3);
+    background: var(--c-bg-inset);
+    font-family: var(--font-mono);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+.ws-mode {
+  font-size: 11px;
+  color: var(--c-text-tertiary);
+}
+
+.ws-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+// ============================================================
+// 上传队列
+// ============================================================
+.ws-uploads {
+  .arco-modal-content {
+    max-height: calc(100dvh - 150px);
+    overflow-y: auto;
+  }
+
+  &__toolbar, &__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+
+  &__toolbar {
+    justify-content: space-between;
+    margin-bottom: var(--sp-2);
+  }
+}
+
+.upload-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.upload-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  background: var(--c-bg-inset);
+  border-left: 2px solid var(--c-border-base);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+
+  &--uploading {
+    border-left-color: var(--c-state-running);
+  }
+
+  &--paused {
+    border-left-color: var(--c-state-paused);
+  }
+
+  &--error {
+    border-left-color: var(--c-state-failed);
+  }
+
+  &--success {
+    border-left-color: var(--c-state-stopped);
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--c-text-primary);
+    min-width: 0;
+  }
+
+  &__size {
+    font-size: 11px;
+    color: var(--c-text-tertiary);
+    flex-shrink: 0;
+  }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+
+  &__state {
+    font-size: 11px;
+    color: var(--c-text-secondary);
+    flex-shrink: 0;
+  }
+
+  &__speed {
+    font-size: 11px;
+    color: var(--c-state-running);
+    flex-shrink: 0;
+  }
+
+  &__error {
+    font-size: 11px;
+    color: var(--c-danger);
+    min-width: 0;
+  }
+
+  &__ops {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .ws-toolbar {
+    flex-wrap: wrap;
+
+    &__left {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+  }
+}

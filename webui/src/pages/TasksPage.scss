@@ -1,0 +1,130 @@
+// ============================================================
+// 工具栏
+// ============================================================
+.task-toolbar__search { width: 240px; max-width: 100%; }
+
+// ============================================================
+// 统计磁贴
+// ============================================================
+.task-stats-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.task-stats-caption {
+  margin: 0;
+  font-size: 11px;
+  color: var(--c-text-tertiary);
+}
+
+.task-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-3);
+}
+
+// ============================================================
+// 卡片视图
+// ============================================================
+.task-card__msg {
+  font-size: var(--text-xs);
+  color: var(--c-text-secondary);
+  line-height: var(--leading-normal);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--c-bg-inset);
+  border-radius: var(--r-sm);
+  // 最多两行，超出截断，避免卡片高度不齐
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.task-card__counters {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.task-card__counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--c-text-secondary);
+}
+
+// ============================================================
+// 表格视图
+// ============================================================
+.task-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+
+  &__start {
+    white-space: nowrap;
+  }
+
+  &__name {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: var(--c-text-primary);
+    cursor: pointer;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: var(--c-accent);
+    }
+  }
+}
+
+.task-msg {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+
+  &__text {
+    font-size: var(--text-xs);
+    color: var(--c-text-secondary);
+    min-width: 0;
+  }
+
+  &__counters {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  &__counter {
+    flex-shrink: 0;
+  }
+}
+
+// 下拉菜单中的危险项
+.task-menu__danger {
+  color: var(--c-danger);
+
+  &:hover {
+    background: var(--c-state-failed-soft) !important;
+    color: var(--c-danger) !important;
+  }
+}
+
+// ============================================================
+// 分页
+// ============================================================
+@media (max-width: 720px) {
+  .task-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

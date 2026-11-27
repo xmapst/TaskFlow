@@ -1,0 +1,389 @@
+.task-create {
+  &__header,
+  &__title,
+  &__header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+  }
+
+  &__title {
+    font-size: var(--text-md);
+    font-weight: 600;
+  }
+
+  &__header { justify-content: space-between; }
+
+  &__issues {
+    list-style: disc;
+    padding-inline-start: var(--sp-4);
+    max-height: 15vh;
+    overflow: auto;
+    font-size: var(--text-xs);
+    line-height: var(--leading-normal);
+  }
+
+  &--builder.arco-modal {
+    max-width: none;
+    max-height: none;
+    --task-create-header-height: 48px;
+    height: 100dvh;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    --modal-radius: 0px;
+    overflow: hidden;
+
+    .arco-modal-header { height: var(--task-create-header-height); }
+    .arco-modal-content {
+      display: flex;
+      flex-direction: column;
+      height: calc(100dvh - var(--task-create-header-height));
+      padding: 0;
+      overflow: hidden;
+    }
+  }
+
+  &__body, &__pane, &__pane-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  &__body, &__pane-content { flex: 1; }
+
+  &__body { position: relative; }
+
+  &__notice {
+    position: absolute;
+    z-index: 7;
+    inset: auto var(--sp-3) var(--sp-3) auto;
+    width: min(480px, calc(100% - 2 * var(--sp-3)));
+    border-radius: 6px;
+    box-shadow: var(--shadow-xl);
+  }
+
+  &__pane > .arco-alert { flex: none; }
+
+  &__split {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    --task-create-divider-size: 20px;
+    grid-template-columns: minmax(0, 1fr) var(--task-create-divider-size);
+    grid-template-rows: minmax(0, 1fr);
+
+    &--expanded { grid-template-columns: minmax(0, 1fr) var(--task-create-divider-size) minmax(0, 1fr); }
+  }
+
+  &__pane[hidden] { display: none; }
+
+  &__divider {
+    display: grid;
+    place-items: center;
+    border-inline: 1px solid var(--color-border-2);
+    background: var(--c-bg-inset);
+  }
+
+  &__editor-toggle {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-block: 1px solid var(--color-border-2);
+    background: var(--c-bg-surface);
+    color: var(--c-text-secondary);
+    cursor: pointer;
+
+    &:hover, &:focus-visible {
+      background: var(--c-bg-raised);
+      color: var(--c-text-primary);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgb(var(--primary-6));
+      outline-offset: -2px;
+    }
+  }
+
+  &__pane-title {
+    flex: none;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    min-height: 36px;
+    padding: var(--sp-1) var(--sp-3);
+    background: var(--c-bg-surface);
+    border-bottom: 1px solid var(--color-border-2);
+
+    span { font-size: var(--text-xs); color: var(--c-text-secondary); }
+  }
+
+  &__builder {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    background: var(--c-bg-base);
+  }
+
+  &__step-picker button, &__node {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    border: 1px solid var(--color-border-2);
+    border-radius: 6px;
+    background: var(--c-bg-raised);
+    color: var(--c-text-primary);
+  }
+
+  &__step-picker button {
+    flex: none;
+    width: 100%;
+    padding: var(--sp-2);
+    text-align: start;
+    cursor: pointer;
+    &:hover { border-color: rgb(var(--primary-6)); }
+  }
+
+  &__badge {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
+    color: #fff;
+    background: #315b9e;
+    font-size: 11px;
+    font-weight: 700;
+
+    &--yellow { background: #7c6321; }
+    &--cyan { background: #256879; }
+    &--red { background: #943c48; }
+    &--purple { background: #6b4a9e; }
+  }
+
+  &__canvas {
+    position: relative;
+    min-height: 0;
+    background: var(--c-bg-inset);
+
+    .react-flow {
+      --xy-background-pattern-dots-color: var(--color-border-3);
+      --xy-edge-stroke: var(--c-text-secondary);
+      --xy-edge-stroke-selected: rgb(var(--primary-6));
+      --xy-controls-button-background-color: var(--c-bg-raised);
+      --xy-controls-button-background-color-hover: var(--c-bg-surface);
+      --xy-controls-button-color: var(--c-text-primary);
+      --xy-controls-button-border-color: var(--color-border-2);
+    }
+  }
+
+  &__canvas-actions {
+    position: absolute;
+    z-index: 5;
+    inset: var(--sp-3) var(--sp-3) auto auto;
+    display: flex;
+    gap: var(--sp-2);
+  }
+
+  &__step-picker {
+    position: absolute;
+    z-index: 6;
+    width: min(180px, 100%);
+    max-height: min(310px, 100%);
+    overflow: auto;
+    padding: var(--sp-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    background: var(--c-bg-surface);
+    border: 1px solid var(--color-border-2);
+    border-radius: 6px;
+    box-shadow: var(--shadow-xl);
+  }
+
+  &__empty {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+
+  &__node {
+    width: 100%;
+    height: 100%;
+    padding: var(--sp-2);
+    &.is-selected { border-color: rgb(var(--primary-6)); outline: 1px solid rgb(var(--primary-6)); }
+    .react-flow__handle { width: 9px; height: 9px; background: var(--c-text-secondary); }
+  }
+
+  &__node-text {
+    min-width: 0;
+    flex: 1;
+    display: grid;
+    strong, small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    small { color: var(--c-text-secondary); }
+  }
+
+  &__fields, &__fields label, &__fields .task-create-config__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+  &__fields label, &__fields .task-create-config__field { gap: var(--sp-1); }
+
+  @media (max-width: 620px) {
+    &__split {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) var(--task-create-divider-size);
+
+      &--expanded { grid-template-rows: minmax(0, 1fr) var(--task-create-divider-size) minmax(0, 1fr); }
+    }
+
+    &__divider {
+      border-inline: 0;
+      border-block: 1px solid var(--color-border-2);
+    }
+
+    &__editor-toggle {
+      width: 44px;
+      height: 100%;
+      border-block: 0;
+      border-inline: 1px solid var(--color-border-2);
+
+      svg { transform: rotate(90deg); }
+    }
+    &__pane-title > span { display: none; }
+    &__header-actions { gap: var(--sp-1); }
+  }
+}
+
+.task-create-config {
+  .arco-modal-content {
+    max-height: calc(100dvh - 140px);
+    overflow-y: auto;
+  }
+
+  // 步骤抽屉：页签撑满抽屉剩余高度，只有内容面板滚动，编辑器在面板里继续铺满
+  &--step {
+    .arco-drawer-content {
+      display: flex;
+      flex-direction: column;
+      padding-top: 0;
+    }
+
+    .task-create-config__tabs {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+
+      > .arco-tabs-content {
+        flex: 1;
+        min-height: 0;
+        padding-top: var(--sp-3);
+        overflow: hidden;
+      }
+
+      .arco-tabs-content-inner { height: 100%; }
+      .arco-tabs-content-item-active { height: 100%; min-height: 0; overflow-y: auto; }
+      .arco-tabs-pane { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+    }
+  }
+
+  & &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    .task-create-config__wide { grid-column: 1 / -1; }
+  }
+
+  &__hint {
+    margin: 0;
+    color: var(--c-text-secondary);
+    font-size: var(--text-xs);
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    min-width: 0;
+    margin: 0;
+    padding: var(--sp-3);
+    border: 1px solid var(--color-border-2);
+    border-radius: 6px;
+
+    legend { padding-inline: var(--sp-1); font-weight: 600; }
+    > .arco-btn { align-self: flex-start; }
+  }
+
+  &__env-row, &__retry, &__tag-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-2);
+  }
+
+  @media (max-width: 520px) {
+    & &__grid, &__retry { grid-template-columns: minmax(0, 1fr); }
+    & &__env-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  }
+
+  &__env-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+    align-items: center;
+  }
+
+  &__tag-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  &__mount-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 1fr) auto auto;
+    gap: var(--sp-2);
+    align-items: center;
+  }
+
+  @media (max-width: 620px) {
+    & &__mount-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  }
+
+  &__error { color: rgb(var(--danger-6)); }
+
+  // 编辑器铺满可用高度：内层绝对定位，不依赖百分比高度链
+  &__script { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: var(--sp-3); }
+  &__editor { flex: 1; min-height: 0; }
+  &__editor-body { position: relative; flex: 1; min-width: 0; min-height: 180px; }
+
+  &__editor-body .code-editor {
+    position: absolute;
+    inset: 0;
+    height: auto;
+  }
+
+  & &__inline {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-2);
+    white-space: nowrap;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+
+    > .arco-btn-status-danger { margin-inline-end: auto; }
+  }
+}
